@@ -1,4 +1,4 @@
-package com.staricka.adventofcode2023.util
+package com.staricka.adventofcode2024.util
 
 import java.util.function.Function
 import kotlin.math.abs

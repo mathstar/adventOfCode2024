@@ -1,4 +1,4 @@
-package com.staricka.adventofcode2023.framework
+package com.staricka.adventofcode2024.framework
 
 import kotlin.reflect.full.createInstance
 import kotlin.system.measureTimeMillis

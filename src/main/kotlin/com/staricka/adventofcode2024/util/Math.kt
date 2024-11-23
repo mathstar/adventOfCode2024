@@ -1,4 +1,4 @@
-package com.staricka.adventofcode2023.util
+package com.staricka.adventofcode2024.util
 
 fun lcm(n1: Long, n2: Long): Long {
     var gcd = 1

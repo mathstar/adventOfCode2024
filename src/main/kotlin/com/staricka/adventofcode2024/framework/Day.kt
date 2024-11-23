@@ -1,4 +1,4 @@
-package com.staricka.adventofcode2023.framework
+package com.staricka.adventofcode2024.framework
 
 import java.lang.Exception
 import kotlin.system.measureTimeMillis

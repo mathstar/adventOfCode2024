@@ -1,4 +1,4 @@
-package com.staricka.adventofcode2023.util
+package com.staricka.adventofcode2024.util
 
 fun String.splitByBlankLines(): List<String> {
     val result = ArrayList<String>()

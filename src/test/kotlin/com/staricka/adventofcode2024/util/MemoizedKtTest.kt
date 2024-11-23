@@ -26,6 +26,25 @@ class MemoizedKtTest {
     }
 
     @Test
+    fun oneParamInlineTest() {
+        val called = BooleanArray(2)
+        val function = memoized {i: Int ->
+            if (called[i]) {
+                fail("Unexpected call to function with $i")
+            } else {
+                called[i] = true
+            }
+            i
+        }
+
+        assertEquals(0, function(0))
+        assertEquals(0, function(0))
+        assertEquals(1, function(1))
+        assertEquals(1, function(1))
+        assertArrayEquals(booleanArrayOf(true, true), called)
+    }
+
+    @Test
     fun twoParamTest() {
         val called = HashMap<TwoMemo<Int, Int>, Boolean>()
         val function = {p0: Int, p1: Int ->

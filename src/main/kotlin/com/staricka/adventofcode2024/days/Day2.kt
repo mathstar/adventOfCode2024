@@ -24,8 +24,7 @@ class Day2: Day {
 
         var count = 0
         for (report in reports) {
-            val error = scan(report)
-            if (error == null) {
+            if (scan(report) == null) {
                 count++
             }
         }
@@ -38,8 +37,7 @@ class Day2: Day {
 
         var count = 0
         for (report in reports) {
-            val error = scan(report)
-            if (error == null) {
+            if (scan(report) == null) {
                 count++
             } else {
                 for (i in report.indices) {

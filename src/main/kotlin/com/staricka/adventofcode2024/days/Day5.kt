@@ -43,13 +43,14 @@ class Day5: Day {
             if (correctlyOrdered(update, rules)) continue
 
             val remaining = HashSet(update)
-            val sorted = ArrayList<Int>(update.size)
-            while (remaining.isNotEmpty()) {
+            // rather than building the sorted list, just identify the next element until we reach halfway
+            var last = 0
+            for (i in 0 until update.size / 2 + 1) {
                 val n = remaining.first { rules[it]?.all { post -> !remaining.contains(post) } ?: true }
-                sorted.addFirst(n)
+                last = n
                 remaining.remove(n)
             }
-            result += sorted[sorted.size / 2]
+            result += last
         }
         return result
     }

@@ -23,7 +23,7 @@ class Day7: Day {
         equations.filter { eq ->
             var acc = setOf(eq.operands[0])
             for (operand in eq.operands.drop(1)) {
-                acc = acc.flatMap { a -> operators.map { operator -> operator(a, operand) } }.toSet()
+                acc = acc.flatMap { a -> operators.map { operator -> operator(a, operand) }.filter { it <= eq.result } }.toSet()
             }
             acc.contains(eq.result)
         }.sumOf { it.result }

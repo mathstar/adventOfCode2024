@@ -21,9 +21,9 @@ class Day7: Day {
 
     private fun sumMatches(equations: List<Equation>, operators: List<(Long, Long) -> Long>) =
         equations.filter { eq ->
-            var acc = setOf(eq.operands[0])
+            var acc = listOf(eq.operands[0])
             for (operand in eq.operands.drop(1)) {
-                acc = acc.flatMap { a -> operators.map { operator -> operator(a, operand) }.filter { it <= eq.result } }.toSet()
+                acc = acc.flatMap { a -> operators.map { operator -> operator(a, operand) }.filter { it <= eq.result } }
             }
             acc.contains(eq.result)
         }.sumOf { it.result }

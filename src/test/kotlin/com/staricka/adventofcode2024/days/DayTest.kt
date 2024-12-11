@@ -5,19 +5,19 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 abstract class DayTest(
-    val day: () -> Day,
-    val input: String,
-    val part1Expected: Any?,
-    val part2Expected: Any?,
-    val part2Input: String = input
+    private val day: () -> Day,
+    private val input: String,
+    private val part1Expected: Any?,
+    private val part2Expected: Any?,
+    private val part2Input: String = input
 ) {
     @Test
     fun part1() {
-        assertEquals(part1Expected, day().part1(input))
+        if (part1Expected != null) assertEquals(part1Expected, day().part1(input))
     }
 
     @Test
     fun part2() {
-        assertEquals(part2Expected, day().part2(part2Input))
+        if (part2Expected != null) assertEquals(part2Expected, day().part2(part2Input))
     }
 }

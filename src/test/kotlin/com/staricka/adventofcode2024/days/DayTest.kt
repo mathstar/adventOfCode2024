@@ -7,8 +7,8 @@ import kotlin.test.assertEquals
 abstract class DayTest(
     private val day: () -> Day,
     private val input: String,
-    private val part1Expected: Any?,
-    private val part2Expected: Any?,
+    private val part1Expected: Any? = null,
+    private val part2Expected: Any? = null,
     private val part2Input: String = input
 ) {
     @Test

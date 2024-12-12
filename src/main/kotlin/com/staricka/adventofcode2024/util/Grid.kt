@@ -33,7 +33,7 @@ open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()
     fun size() = (abs(minX - maxX) + 1) * (abs(minY - maxY) + 1)
 
     operator fun get(x: Int, y: Int): T? = cells[x]?.get(y)
-    fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
+    operator fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
     operator fun set(x: Int, y: Int, value: T?) {
         cells.computeIfAbsent(x){HashMap()}[y] = value
         minXInner = min(minXInner ?: Int.MAX_VALUE, x)

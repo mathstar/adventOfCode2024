@@ -19,5 +19,5 @@ class Day13Test: DayTest(
         Button B: X+27, Y+71
         Prize: X=18641, Y=10279
     """.trimIndent(),
-    480
+    480L
 )

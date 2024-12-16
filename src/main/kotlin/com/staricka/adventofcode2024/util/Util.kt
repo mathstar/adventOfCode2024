@@ -15,6 +15,20 @@ fun String.splitByBlankLines(): List<String> {
     return result
 }
 
-enum class Direction {
-    UP, LEFT, DOWN, RIGHT
+enum class Direction(val vector: Pair<Int, Int>) {
+    UP(-1 to 0), LEFT(0 to -1), DOWN(1 to 0), RIGHT(0 to 1);
+
+    fun clockwise() = when(this) {
+        UP -> RIGHT
+        RIGHT -> DOWN
+        DOWN -> LEFT
+        LEFT -> UP
+    }
+
+    fun counterClockwise() = when(this) {
+        UP -> LEFT
+        LEFT -> DOWN
+        DOWN -> RIGHT
+        RIGHT -> UP
+    }
 }

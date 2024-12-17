@@ -154,6 +154,7 @@ class Day16: Day {
         val viewingSpots = HashSet<Pair<Int, Int>>()
         viewingSpots.add(ex to ey)
         priorityQueue.add(Triple(sx, sy, Direction.RIGHT) to Pair(0, emptyList()))
+        var endCost: Int? = null
         while (priorityQueue.isNotEmpty()) {
             val (t, costSoFar) = priorityQueue.poll()
             val (x, y, heading) = t
@@ -162,6 +163,8 @@ class Day16: Day {
             visited[t] = costSoFar.first
 
             if (x == ex && y == ey) {
+                if (endCost == null) endCost = costSoFar.first
+                if (costSoFar.first != endCost) continue
                 viewingSpots.addAll(costSoFar.second)
                 continue
             }

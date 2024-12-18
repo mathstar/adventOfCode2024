@@ -42,6 +42,30 @@ class Day18(private val gridSize: Int = 70, private val part1Bytes: Int = 1024):
         return grid
     }
 
+    fun populateGrid(bytes: List<List<Int>>, lastByte: Int): Grid<Cell> {
+        val grid = populateInitialGrid(bytes)
+        for (i in part1Bytes..lastByte) {
+            val (x, y) = bytes[i]
+            grid[x, y] = Cell.WALL
+        }
+        return grid
+    }
+
+    fun findBlockingByte(bytes: List<List<Int>>): String {
+        var lower = part1Bytes
+        var upper = bytes.size - 1
+        while (lower < upper) {
+            val pivot = (lower + upper) / 2
+            val grid = populateGrid(bytes, pivot)
+            if (pathfind(grid) > 0) {
+                lower = pivot + 1
+            } else {
+                upper = pivot
+            }
+        }
+        return bytes[lower].joinToString(",")
+    }
+
     override fun part1(input: String): Int {
         val bytes = parseBytes(input)
         val grid = populateInitialGrid(bytes)
@@ -50,12 +74,13 @@ class Day18(private val gridSize: Int = 70, private val part1Bytes: Int = 1024):
 
     override fun part2(input: String): String {
         val bytes = parseBytes(input)
-        val grid = populateInitialGrid(bytes)
-        var i = part1Bytes
-        while (pathfind(grid) > 0) {
-            val (x, y) = bytes[i++]
-            grid[x, y] = Cell.WALL
-        }
-        return bytes[i-1].joinToString(",")
+//        val grid = populateInitialGrid(bytes)
+//        var i = part1Bytes
+//        while (pathfind(grid) > 0) {
+//            val (x, y) = bytes[i++]
+//            grid[x, y] = Cell.WALL
+//        }
+//        return bytes[i-1].joinToString(",")
+        return findBlockingByte(bytes)
     }
 }

@@ -1,8 +1,17 @@
 package com.staricka.adventofcode2024.days
 
 import com.staricka.adventofcode2024.framework.Day
+import java.math.BigInteger
 import kotlin.math.pow
 import kotlin.math.sqrt
+
+fun divideByPowerOf2(numerator: Long, power: Long): Long {
+    var result = numerator
+    for (i in 1..power) {
+        result /= 2
+    }
+    return result
+}
 
 class Day17: Day {
     enum class OpCode {
@@ -21,14 +30,14 @@ class Day17: Day {
             var regB = regB
             var regC = regC
             when (OpCode.entries[program[pc]]) {
-                OpCode.ADV -> regA = (regA / (2.0).pow(comboOperand(program).toDouble())).toLong()
+                OpCode.ADV -> regA = divideByPowerOf2(regA, comboOperand(program))
                 OpCode.BXL -> regB = regB xor program[pc+1].toLong()
                 OpCode.BST -> regB = comboOperand(program) % 8
                 OpCode.JNZ -> if (regA != 0L) return State(program[pc+1], regA, regB, regC, out)
                 OpCode.BXC -> regB = regB xor regC
                 OpCode.OUT -> return State(pc + 2, regA, regB, regC, out + comboOperand(program) % 8)
-                OpCode.BDV -> regB = (regA / (2.0).pow(comboOperand(program).toDouble())).toLong()
-                OpCode.CDV -> regC = (regA / (2.0).pow(comboOperand(program).toDouble())).toLong()
+                OpCode.BDV -> regB = divideByPowerOf2(regA, comboOperand(program))
+                OpCode.CDV -> regC = divideByPowerOf2(regA, comboOperand(program))
             }
             return State(pc+2, regA, regB, regC, out)
         }

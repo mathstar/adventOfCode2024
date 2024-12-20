@@ -4,173 +4,85 @@ import com.staricka.adventofcode2024.framework.Day
 import com.staricka.adventofcode2024.util.Grid
 import com.staricka.adventofcode2024.util.GridCell
 import com.staricka.adventofcode2024.util.StandardGrid
-import java.util.ArrayList
 import java.util.PriorityQueue
+import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
+import kotlin.math.abs
 
 class Day20(private val part1Evaluation: Int = 100, private val part2Evaluation: Int = 100): Day {
     enum class Cell(override val symbol: Char): GridCell {
         WALL('#'), START('S'), END('E')
     }
 
-    private fun start(grid: Grid<Cell>) = grid.cells().first { (_,_,c) -> c == Cell.START }
-
-    data class PathfindCheatlessResult(val time: Int, val cheatCandidates: Set<Triple<Int, Int, Int>>)
-    private fun pathFindWithoutCheat(grid: Grid<Cell>): PathfindCheatlessResult {
-        val queue = PriorityQueue<Triple<Int, Int, Int>>(Comparator.comparingInt { it.third })
-        val visited = HashSet<Pair<Int, Int>>()
-        val (sx,sy) = start(grid)
-        queue.add(Triple(sx, sy, 0))
-        visited.add(sx to sy)
-
-        val cheatCandidates = HashSet<Triple<Int, Int, Int>>()
-
-        while (queue.isNotEmpty()) {
-            val (x,y,t) = queue.remove()
-            if (grid[x,y] == Cell.END) {
-                return PathfindCheatlessResult(t, cheatCandidates)
+    data class MazeAnalysis(
+        val distanceFromStart: Map<Pair<Int, Int>, Int>,
+        val start: Pair<Int, Int>,
+        val end: Pair<Int, Int>
+    ) {
+        companion object {
+            private fun start(grid: Grid<Cell>): Pair<Int, Int> {
+                val (x, y) = grid.cells().first { (_,_,c) -> c == Cell.START }
+                return x to y
             }
 
-            grid.manhattanNeighbors(x,y).forEach { (nx,ny,c) ->
-                if (c == Cell.WALL) {
-                    //cheatCandidates.add(Triple(nx, ny, t + 1))
-                } else if (!visited.contains(nx to ny)) {
-                    queue.add(Triple(nx, ny, t + 1))
-                    visited.add(nx to ny)
-                    cheatCandidates.add(Triple(nx, ny, t + 1))
+            private fun end(grid: Grid<Cell>): Pair<Int, Int> {
+                val (x, y) = grid.cells().first { (_,_,c) -> c == Cell.END }
+                return x to y
+            }
+
+            fun analyzeMaze(grid: Grid<Cell>): MazeAnalysis {
+                val distanceFromStart = HashMap<Pair<Int, Int>, Int>()
+
+                val (sx, sy) = start(grid)
+                val queue = PriorityQueue<Triple<Int, Int, Int>>(Comparator.comparingInt { it.third })
+                val visited = HashSet<Pair<Int, Int>>()
+                queue.add(Triple(sx, sy, 0))
+                visited.add(Pair(sx, sy))
+                while (queue.isNotEmpty()) {
+                    val (x, y, t) = queue.remove()
+                    distanceFromStart[x to y] = t
+
+                    for ((nx, ny, c) in grid.manhattanNeighbors(x,y)) {
+                        if (c != Cell.WALL && !visited.contains(nx to ny)) {
+                            queue.add(Triple(nx, ny, t + 1))
+                            visited.add(nx to y)
+                        }
+                    }
                 }
+
+                return MazeAnalysis(distanceFromStart, sx to sy, end(grid))
             }
         }
-        return PathfindCheatlessResult(-1, cheatCandidates)
     }
 
-    private fun allPaths(grid: Grid<Cell>): PathfindCheatlessResult {
-        val queue = PriorityQueue<Triple<Int, Int, Int>>(Comparator.comparingInt { it.third })
-        val visited = HashSet<Pair<Int, Int>>()
-        val (sx,sy) = start(grid)
-        queue.add(Triple(sx, sy, 0))
-        visited.add(sx to sy)
-
-        val cheatCandidates = HashSet<Triple<Int, Int, Int>>()
-        var endTime: Int? = null
-
-        while (queue.isNotEmpty()) {
-            val (x,y,t) = queue.remove()
-            if (grid[x,y] == Cell.END && endTime == null) {
-                endTime = t
-            }
-
-            grid.manhattanNeighbors(x,y).forEach { (nx,ny,c) ->
-                if (c != Cell.WALL && !visited.contains(nx to ny)) {
-                    queue.add(Triple(nx, ny, t + 1))
-                    visited.add(nx to ny)
-                    cheatCandidates.add(Triple(nx, ny, t + 1))
-                }
-            }
-        }
-        return PathfindCheatlessResult(endTime!!, cheatCandidates)
+    private fun cheatDestinations(mazeAnalysis: MazeAnalysis, start: Pair<Int, Int>, distance: Int): List<Pair<Int, Int>> {
+        return mazeAnalysis.distanceFromStart.keys
+            .filter { distance(start, it) <= distance}
     }
 
-    val pathFindWithCheatCache = HashMap<Pair<Int, Int>, Int>()
-    private fun pathFindWithCheat(grid: Grid<Cell>, start: Pair<Int, Int>, initialTime: Int): Int {
-        if (pathFindWithCheatCache.containsKey(start)) return initialTime + pathFindWithCheatCache[start]!!
-        if (grid[start.first, start.second] == Cell.END) return initialTime
-        val queue = PriorityQueue<Triple<Int, Int, Int>>(Comparator.comparingInt { it.third })
-        val visited = HashSet<Pair<Int, Int>>()
-        val (sx,sy) = start
-        queue.add(Triple(sx, sy, initialTime))
-        visited.add(sx to sy)
+    private fun distance(start: Pair<Int, Int>, end: Pair<Int, Int>): Int {
+        return abs(start.first - end.first) + abs(start.second - end.second)
+    }
 
-        while (queue.isNotEmpty()) {
-            val (x,y,t) = queue.remove()
-            if (grid[x,y] == Cell.END) {
-                return t.also { pathFindWithCheatCache[start] = t - initialTime }
-            }
+    private fun evaluateCheats(grid: Grid<Cell>, distance: Int): Map<Int, List<Cheat>> {
+        val mazeAnalysis = MazeAnalysis.analyzeMaze(grid)
+        val baseCase = mazeAnalysis.distanceFromStart[mazeAnalysis.end]!!
+        val result = HashMap<Int, ArrayList<Cheat>>()
 
-            grid.manhattanNeighbors(x,y).forEach { (nx,ny,c) ->
-                if (c != Cell.WALL && !visited.contains(nx to ny)) {
-                    queue.add(Triple(nx, ny, t + 1))
-                    visited.add(nx to ny)
+        for (cheatStart in mazeAnalysis.distanceFromStart.keys) {
+            for (cheatDestination in cheatDestinations(mazeAnalysis, cheatStart, distance)) {
+                val cheatCase = mazeAnalysis.distanceFromStart[cheatStart]!! +
+                        (baseCase - mazeAnalysis.distanceFromStart[cheatDestination]!!) +
+                        distance(cheatStart, cheatDestination)
+                if (cheatCase < baseCase) {
+                    result.computeIfAbsent(baseCase - cheatCase){ArrayList()}.add(Cheat(cheatStart, cheatDestination))
                 }
             }
         }
-        return Int.MAX_VALUE.also { pathFindWithCheatCache[start] = Int.MAX_VALUE }
+        return result
     }
 
     data class Cheat(val start: Pair<Int, Int>, val end: Pair<Int, Int>)
-    private fun evaluateCheats(pathfindCheatlessResult: PathfindCheatlessResult, grid: Grid<Cell>): Map<Int, List<Cheat>> {
-        val (baseCase, cheatCandidates) = pathfindCheatlessResult
-        val result = HashMap<Int, ArrayList<Cheat>>()
-        val evaluated = HashSet<Pair<Int, Int>>()
-        for ((csx, csy, time) in cheatCandidates.sortedBy { it.third }) {
-            if (csx <= grid.minX || csx >= grid.maxX || csy <= grid.minY || csy >= grid.maxY) continue
-            for ((cex, cey) in grid.manhattanNeighbors(csx, csy)) {
-                if (cex <= grid.minX || cex >= grid.maxX || cey <= grid.minY || cey >= grid.maxY) continue
-                if (!evaluated.add(cex to cey)) continue
-                val cheatCase = pathFindWithCheat(grid, cex to cey, time + 1)
-                if (cheatCase < baseCase) {
-                    result.computeIfAbsent(baseCase - cheatCase){ArrayList()}.add(Cheat(csx to csy, cex to cey))
-                }
-            }
-        }
-        return result
-    }
-
-    private fun identifyCheats(start: Pair<Int, Int>, time: Int, grid: Grid<Cell>, length: Int): Set<Triple<Int, Int, Int>> {
-        val result = HashSet<Triple<Int, Int, Int>>()
-        val queue = PriorityQueue<Triple<Int, Int, Int>>(Comparator.comparingInt { it.third })
-        val visited = HashSet<Pair<Int, Int>>()
-        queue.add(Triple(start.first, start.second, time))
-        visited.add(start)
-
-        while (queue.isNotEmpty()) {
-            val (x,y,t) = queue.remove()
-            if (x < grid.minX || x > grid.maxX || y < grid.minY || y > grid.maxY) continue
-            if (grid[x,y] != Cell.WALL ) {
-                result.add(Triple(x,y,t))
-            }
-            //if (grid[x,y] == Cell.END) continue
-            if (t == time + length) continue
-
-            for ((nx,ny) in grid.manhattanNeighbors(x,y)) {
-                if (!visited.contains(nx to ny)) {
-                    queue.add(Triple(nx, ny, t + 1))
-                    visited.add(nx to ny)
-                }
-            }
-        }
-        return result
-    }
-
-    private fun evaluateLongCheats(pathfindCheatlessResult: PathfindCheatlessResult, grid: Grid<Cell>): Map<Int, List<Cheat>> {
-        val (baseCase, cheatCandidates) = pathfindCheatlessResult
-        val result = HashMap<Int, ArrayList<Cheat>>()
-        for ((csx, csy, time) in cheatCandidates.sortedBy { it.third }) {
-            if (csx <= grid.minX || csx >= grid.maxX || csy <= grid.minY || csy >= grid.maxY) continue
-            for ((cex, cey, t) in identifyCheats(csx to csy, time, grid, 20)) {
-                val cheatCase = pathFindWithCheat(grid, cex to cey, t)
-                if (cheatCase < baseCase) {
-                    result.computeIfAbsent(baseCase - cheatCase){ArrayList()}.add(Cheat(csx to csy, cex to cey))
-                }
-            }
-        }
-        return result
-    }
-
-    private fun evaluateShortCheats(pathfindCheatlessResult: PathfindCheatlessResult, grid: Grid<Cell>): Map<Int, List<Cheat>> {
-        val (baseCase, cheatCandidates) = pathfindCheatlessResult
-        val result = HashMap<Int, ArrayList<Cheat>>()
-        for ((csx, csy, time) in cheatCandidates.sortedBy { it.third }) {
-            if (csx <= grid.minX || csx >= grid.maxX || csy <= grid.minY || csy >= grid.maxY) continue
-            for ((cex, cey, t) in identifyCheats(csx to csy, time, grid, 2)) {
-                val cheatCase = pathFindWithCheat(grid, cex to cey, t)
-                if (cheatCase < baseCase) {
-                    result.computeIfAbsent(baseCase - cheatCase){ArrayList()}.add(Cheat(csx to csy, cex to cey))
-                }
-            }
-        }
-        return result
-    }
 
     override fun part1(input: String): Int {
         val grid = StandardGrid.build(input.trim()) {when (it) {
@@ -180,12 +92,10 @@ class Day20(private val part1Evaluation: Int = 100, private val part2Evaluation:
             else -> null
         }}
 
-        return evaluateShortCheats(pathFindWithoutCheat(grid), grid)
+        return evaluateCheats(grid, 2)
             .filter { (k,_) -> k >= part1Evaluation }
-            .values.sumOf { it.size }
-//        return evaluateCheats(pathFindWithoutCheat(grid), grid)
-//            .filter { (k,_) -> k >= part1Evaluation }
-//            .values.sumOf { it.size }
+            .values
+            .sumOf { it.size }
     }
 
     override fun part2(input: String): Int {
@@ -195,8 +105,9 @@ class Day20(private val part1Evaluation: Int = 100, private val part2Evaluation:
             'E' -> Cell.END
             else -> null
         }}
-        return evaluateLongCheats(allPaths(grid), grid)
+        return evaluateCheats(grid, 20)
             .filter { (k,_) -> k >= part2Evaluation }
-            .values.sumOf { it.size }
+            .values
+            .sumOf { it.size }
     }
 }

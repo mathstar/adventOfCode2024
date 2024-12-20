@@ -1,7 +1,7 @@
 package com.staricka.adventofcode2024.days
 
 class Day20Test: DayTest(
-    {Day20()},
+    {Day20(20, 50)},
     """
         ###############
         #...#...#.....#
@@ -19,5 +19,6 @@ class Day20Test: DayTest(
         #...#...#...###
         ############### 
     """.trimIndent(),
-    0
+    5,
+    285
 )
